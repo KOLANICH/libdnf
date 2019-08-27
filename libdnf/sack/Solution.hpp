@@ -31,7 +31,8 @@ namespace libdnf {
 struct Solution {
 public:
     Solution(const char * subject, DnfSack* sack, HyForm * forms, bool icase,
-             bool with_nevra, bool with_provides, bool with_filenames, bool with_src);
+             bool with_nevra, bool with_provides, bool with_filenames, bool with_src,
+             Query::ExcludeFlags exclude_flags = Query::ExcludeFlags::APPLY_EXCLUDES);
 
     std::unique_ptr<Query> query;
     std::unique_ptr<Nevra> nevra;

@@ -278,12 +278,13 @@ get_solution(_SubjectObject *self, PyObject *args, PyObject *kwds)
     PyObject *with_provides = NULL;
     PyObject *with_filenames = NULL;
     PyObject *with_src = NULL;
+    PyObject *exclude_flags_obj = NULL;
     const char *kwlist[] = {"sack", "with_nevra", "with_provides", "with_filenames", "forms",
-        "with_src", NULL};
+        "with_src", "exclude_flags", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!|O!O!O!OO!", (char**) kwlist, &sack_Type, &sack,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!|O!O!O!OO!O", (char**) kwlist, &sack_Type, &sack,
         &PyBool_Type, &with_nevra, &PyBool_Type, &with_provides,
-        &PyBool_Type, &with_filenames, &forms, &PyBool_Type, &with_src)) {
+        &PyBool_Type, &with_filenames, &forms, &PyBool_Type, &with_src, &exclude_flags_obj)) {
         return std::make_pair(nullptr, std::unique_ptr<libdnf::Nevra>());
     }
     std::vector<HyForm> cforms;
@@ -299,8 +300,13 @@ get_solution(_SubjectObject *self, PyObject *args, PyObject *kwds)
     gboolean c_with_src = with_src == NULL || PyObject_IsTrue(with_src);
     csack = sackFromPyObject(sack);
 
+    libdnf::Query::ExcludeFlags exclude_flags =
+        exclude_flags_obj == NULL || exclude_flags_obj == Py_None ?
+        libdnf::Query::ExcludeFlags::APPLY_EXCLUDES :
+        static_cast<libdnf::Query::ExcludeFlags>(PyLong_AsLong(exclude_flags_obj));
+
     libdnf::Solution solution(self->pattern, csack, cforms.empty() ? NULL : cforms.data(),
-        self->icase, c_with_nevra, c_with_provides, c_with_filenames, c_with_src);
+        self->icase, c_with_nevra, c_with_provides, c_with_filenames, c_with_src, exclude_flags);
 
     return std::make_pair(
         queryToPyObject(solution.query.release(), sack, &query_Type),

@@ -24,9 +24,10 @@
 namespace libdnf {
 
 Solution::Solution(const char * subject, DnfSack* sack, HyForm * forms, bool icase,
-    bool with_nevra, bool with_provides, bool with_filenames, bool with_src)
+    bool with_nevra, bool with_provides, bool with_filenames, bool with_src,
+    Query::ExcludeFlags exclude_flags)
 :
-    query(new Query(sack))
+    query(new Query(sack, exclude_flags))
 {
     Query baseQuery(*query);
     if (!with_src) {
