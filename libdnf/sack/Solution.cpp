@@ -25,56 +25,54 @@ namespace libdnf {
 
 Solution::Solution(const char * subject, DnfSack* sack, HyForm * forms, bool icase,
     bool with_nevra, bool with_provides, bool with_filenames, bool with_src)
+:
+    query(new Query(sack))
 {
-    Query baseQuery(sack);
+    Query baseQuery(*query);
     if (!with_src) {
         baseQuery.addFilter(HY_PKG_ARCH, HY_NEQ, "src");
     }
     baseQuery.apply();
-    std::unique_ptr<Query> queryCandidate(new Query(baseQuery));
+
+    query->addFilter(HY_PKG_EMPTY, HY_EQ, 1);
+
     if (with_nevra) {
         Nevra nevraObj;
         const HyForm * tryForms = !forms ? HY_FORMS_MOST_SPEC : forms;
         for (std::size_t i = 0; tryForms[i] != _HY_FORM_STOP_; ++i) {
             if (nevraObj.parse(subject, tryForms[i])) {
-                queryCandidate->queryUnion(baseQuery);
-                queryCandidate->addFilter(&nevraObj, icase);
-                if (!queryCandidate->empty()) {
+                query->queryUnion(baseQuery);
+                query->addFilter(&nevraObj, icase);
+                if (!query->empty()) {
                     nevra.reset(new Nevra(std::move(nevraObj)));
-                    query = std::move(queryCandidate);
                     return;
                 }
             }
         }
         if (!forms) {
-            queryCandidate->queryUnion(baseQuery);
-            queryCandidate->addFilter(HY_PKG_NEVRA, HY_GLOB, subject);
-            if (!queryCandidate->empty()) {
-                query = std::move(queryCandidate);
+            query->queryUnion(baseQuery);
+            query->addFilter(HY_PKG_NEVRA, HY_GLOB, subject);
+            if (!query->empty()) {
                 return;
             }
         }
     }
 
     if (with_provides) {
-        queryCandidate->queryUnion(baseQuery);
-        queryCandidate->addFilter(HY_PKG_PROVIDES, HY_GLOB, subject);
-        if (!queryCandidate->empty()) {
-            query = std::move(queryCandidate);
+        query->queryUnion(baseQuery);
+        query->addFilter(HY_PKG_PROVIDES, HY_GLOB, subject);
+        if (!query->empty()) {
             return;
         }
     }
 
     if (with_filenames && hy_is_file_pattern(subject)) {
-        queryCandidate->queryUnion(baseQuery);
-        queryCandidate->addFilter(HY_PKG_FILE, HY_GLOB, subject);
-        if (!queryCandidate->empty()) {
-            query = std::move(queryCandidate);
+        query->queryUnion(baseQuery);
+        query->addFilter(HY_PKG_FILE, HY_GLOB, subject);
+        if (!query->empty()) {
             return;
         }
     }
-    queryCandidate->addFilter(HY_PKG_EMPTY, HY_EQ, 1);
-    query = std::move(queryCandidate);
 }
 
 }
