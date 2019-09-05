@@ -30,15 +30,14 @@ namespace libdnf {
 
 struct Solution {
 public:
+    Solution(const char * subject, DnfSack* sack, HyForm * forms, bool icase,
+             bool with_nevra, bool with_provides, bool with_filenames, bool with_src);
+
     const Nevra * getNevra() const noexcept;
     const Query * getQuery() const noexcept;
     Nevra * releaseNevra();
     Query * releaseQuery();
-    /**
-    * @brief Return true if solution found
-    */
-    bool getBestSolution(const char * subject, DnfSack* sack, HyForm * forms, bool icase,
-        bool with_nevra, bool with_provides, bool with_filenames, bool with_src);
+
 private:
     std::unique_ptr<Query> query;
     std::unique_ptr<Nevra> nevra;

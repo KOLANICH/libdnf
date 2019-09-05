@@ -23,11 +23,9 @@
 
 namespace libdnf {
 
-bool
-Solution::getBestSolution(const char * subject, DnfSack* sack, HyForm * forms, bool icase,
+Solution::Solution(const char * subject, DnfSack* sack, HyForm * forms, bool icase,
     bool with_nevra, bool with_provides, bool with_filenames, bool with_src)
 {
-    nevra.reset();
     Query baseQuery(sack);
     if (!with_src) {
         baseQuery.addFilter(HY_PKG_ARCH, HY_NEQ, "src");
@@ -44,7 +42,7 @@ Solution::getBestSolution(const char * subject, DnfSack* sack, HyForm * forms, b
                 if (!queryCandidate->empty()) {
                     nevra.reset(new Nevra(std::move(nevraObj)));
                     query = std::move(queryCandidate);
-                    return true;
+                    return;
                 }
             }
         }
@@ -53,7 +51,7 @@ Solution::getBestSolution(const char * subject, DnfSack* sack, HyForm * forms, b
             queryCandidate->addFilter(HY_PKG_NEVRA, HY_GLOB, subject);
             if (!queryCandidate->empty()) {
                 query = std::move(queryCandidate);
-                return true;
+                return;
             }
         }
     }
@@ -63,7 +61,7 @@ Solution::getBestSolution(const char * subject, DnfSack* sack, HyForm * forms, b
         queryCandidate->addFilter(HY_PKG_PROVIDES, HY_GLOB, subject);
         if (!queryCandidate->empty()) {
             query = std::move(queryCandidate);
-            return true;
+            return;
         }
     }
 
@@ -72,12 +70,11 @@ Solution::getBestSolution(const char * subject, DnfSack* sack, HyForm * forms, b
         queryCandidate->addFilter(HY_PKG_FILE, HY_GLOB, subject);
         if (!queryCandidate->empty()) {
             query = std::move(queryCandidate);
-            return true;
+            return;
         }
     }
     queryCandidate->addFilter(HY_PKG_EMPTY, HY_EQ, 1);
     query = std::move(queryCandidate);
-    return false;
 }
 
 }
