@@ -32,7 +32,6 @@ Solution::Solution(const char * subject, DnfSack* sack, HyForm * forms, bool ica
     if (!with_src) {
         baseQuery.addFilter(HY_PKG_ARCH, HY_NEQ, "src");
     }
-    baseQuery.apply();
 
     query->addFilter(HY_PKG_EMPTY, HY_EQ, 1);
 
