@@ -22,6 +22,8 @@
 
 #include <vector>
 
+#include "sack/Solution.hpp"
+
 // hawkey
 #include "hy-iutil.h"
 #include "nevra.hpp"
@@ -266,8 +268,8 @@ nsvcap_possibilities(_SubjectObject *self, PyObject *args, PyObject *kwds)
 
 }
 
-static PyObject *
-get_best_parser(_SubjectObject *self, PyObject *args, PyObject *kwds, HyNevra *nevra)
+static std::pair<PyObject*, std::unique_ptr<libdnf::Nevra>>
+get_solution(_SubjectObject *self, PyObject *args, PyObject *kwds)
 {
     PyObject *sack;
     DnfSack *csack;
@@ -282,34 +284,34 @@ get_best_parser(_SubjectObject *self, PyObject *args, PyObject *kwds, HyNevra *n
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!|O!O!O!OO!", (char**) kwlist, &sack_Type, &sack,
         &PyBool_Type, &with_nevra, &PyBool_Type, &with_provides,
         &PyBool_Type, &with_filenames, &forms, &PyBool_Type, &with_src)) {
-        return NULL;
+        return std::make_pair(nullptr, std::unique_ptr<libdnf::Nevra>());
     }
     std::vector<HyForm> cforms;
     if ((forms != NULL) && (forms != Py_None) &&
         ((!PyList_Check(forms)) || (PyList_Size(forms) > 0))) {
         cforms = fill_form<HyForm, _HY_FORM_STOP_>(forms);
         if (cforms.empty())
-            return NULL;
+            return std::make_pair(nullptr, std::unique_ptr<libdnf::Nevra>());
     }
     gboolean c_with_nevra = with_nevra == NULL || PyObject_IsTrue(with_nevra);
     gboolean c_with_provides = with_provides == NULL || PyObject_IsTrue(with_provides);
     gboolean c_with_filenames = with_filenames == NULL || PyObject_IsTrue(with_filenames);
     gboolean c_with_src = with_src == NULL || PyObject_IsTrue(with_src);
     csack = sackFromPyObject(sack);
-    HyQuery query = hy_subject_get_best_solution(self->pattern, csack,
-        cforms.empty() ? NULL : cforms.data(), nevra, self->icase, c_with_nevra,
-        c_with_provides, c_with_filenames, c_with_src);
 
-    return queryToPyObject(query, sack, &query_Type);
+    libdnf::Solution solution(self->pattern, csack, cforms.empty() ? NULL : cforms.data(),
+        self->icase, c_with_nevra, c_with_provides, c_with_filenames, c_with_src);
+
+    return std::make_pair(
+        queryToPyObject(solution.query.release(), sack, &query_Type),
+        std::move(solution.nevra)
+    );
 }
 
 static PyObject *
 get_best_query(_SubjectObject *self, PyObject *args, PyObject *kwds)
 {
-    HyNevra nevra{nullptr};
-    PyObject *py_query = get_best_parser(self, args, kwds, &nevra);
-    delete nevra;
-    return py_query;
+    return get_solution(self, args, kwds).first;
 }
 
 static PyObject *
@@ -344,15 +346,15 @@ get_best_selector(_SubjectObject *self, PyObject *args, PyObject *kwds)
 static PyObject *
 get_best_solution(_SubjectObject *self, PyObject *args, PyObject *kwds)
 {
-    HyNevra nevra{nullptr};
+    auto query_and_nevra = get_solution(self, args, kwds);
 
-    UniquePtrPyObject q(get_best_parser(self, args, kwds, &nevra));
-    if (!q)
-        return NULL;
     PyObject *ret_dict = PyDict_New();
+
+    UniquePtrPyObject q(query_and_nevra.first);
     PyDict_SetItem(ret_dict, PyString_FromString("query"), q.get());
-    if (nevra) {
-        UniquePtrPyObject n(nevraToPyObject(nevra));
+
+    if (query_and_nevra.second) {
+        UniquePtrPyObject n(nevraToPyObject(query_and_nevra.second.release()));
         PyDict_SetItem(ret_dict, PyString_FromString("nevra"), n.get());
     }
     else
