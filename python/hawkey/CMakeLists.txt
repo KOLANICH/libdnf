@@ -6,11 +6,11 @@ else()
     set(HAWKEY_MODULE_NAME "_hawkey")
 endif()
 
-find_package(PythonInstDir)
+find_package (Python COMPONENTS Interpreter Development)
 include_directories(${PYTHON_INCLUDE_PATH})
 include_directories("${CMAKE_SOURCE_DIR}/libdnf")
 
-message(STATUS "Python install dir is ${PYTHON_INSTALL_DIR}")
+message(STATUS "Python install dir is ${Python_STDARCH}")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-strict-aliasing")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fno-strict-aliasing")
@@ -44,10 +44,21 @@ add_library(_hawkeymodule SHARED ${hawkeymodule_SRCS})
 set_target_properties(_hawkeymodule PROPERTIES PREFIX "")
 set_target_properties(_hawkeymodule PROPERTIES OUTPUT_NAME ${HAWKEY_MODULE_NAME})
 set_target_properties(_hawkeymodule PROPERTIES LIBRARY_OUTPUT_DIRECTORY "./hawkey")
-target_link_libraries(_hawkeymodule libdnf ${SOLV_LIBRARY} ${SOLVEXT_LIBRARY})
-target_link_libraries(_hawkeymodule ${PYTHON_LIBRARY})
+target_link_libraries(_hawkeymodule libdnf ${LibSolv_LIBRARIES} ${LibSolvExt_LIBRARIES})
+target_link_libraries(_hawkeymodule ${Python_LIBRARIES})
 
-install(FILES __init__.py DESTINATION ${PYTHON_INSTALL_DIR}/hawkey)
-install(TARGETS _hawkeymodule LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}/hawkey)
+install(FILES __init__.py DESTINATION ${Python_STDARCH}/hawkey COMPONENT "python-hawkey" COMPONENT "python_hawkey")
+install(TARGETS _hawkeymodule LIBRARY DESTINATION ${Python_STDARCH}/hawkey  COMPONENT "python_hawkey")
 
-add_subdirectory(tests)
+if(WITH_TESTS)
+    add_subdirectory(tests)
+endif()
+
+
+if(${PYTHON_VERSION_MAJOR} GREATER_EQUAL "3")
+	set(CPACK_DEBIAN_PYTHON_HAWKEY_PACKAGE_NAME "python${PYTHON_VERSION_MAJOR}-hawkey" PARENT_SCOPE)
+else()
+	set(CPACK_DEBIAN_PYTHON_HAWKEY_PACKAGE_NAME "python-hawkey" PARENT_SCOPE)
+endif()
+
+set("CPACK_DEBIAN_PYTHON_HAWKEY_PACKAGE_DEPENDS" "libpython${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR} (>=${PYTHON_VERSION_STRING}~), python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR} (>=${PYTHON_VERSION_STRING}~), ${CPACK_DEBIAN_LIB_PACKAGE_NAME}" PARENT_SCOPE)

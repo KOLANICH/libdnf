@@ -21,4 +21,4 @@ set(UTILS_PUBLIC_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/PreserveOrderMap.hpp
 )
 
-install(FILES ${UTILS_PUBLIC_HEADERS} DESTINATION include/libdnf/utils)
+install(FILES ${UTILS_PUBLIC_HEADERS} DESTINATION include/libdnf/utils COMPONENT "dev")

@@ -34,5 +34,5 @@ add_custom_command(TARGET testmodule
     COMMAND cp $<TARGET_FILE:testmodule> ${TMODULE_TARGET}
 )
 
-install(FILES __init__.py DESTINATION ${PYTHON_INSTALL_DIR}/hawkey/test)
-install(TARGETS testmodule LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}/hawkey/test)
+install(FILES __init__.py DESTINATION ${PYTHON_INSTALL_DIR}/hawkey/test COMPONENT "hawkey_test")
+install(TARGETS testmodule LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}/hawkey/test COMPONENT "hawkey_test")

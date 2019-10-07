@@ -7,4 +7,4 @@ set(PLUGIN_PUBLIC_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/plugin.h
 )
 
-install(FILES ${PLUGIN_PUBLIC_HEADERS} DESTINATION include/libdnf/plugin)
+install(FILES ${PLUGIN_PUBLIC_HEADERS} DESTINATION include/libdnf/plugin COMPONENT "dev")

@@ -31,4 +31,4 @@ set(CONF_PUBLIC_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/ConfigParser.hpp
 )
 
-install(FILES ${CONF_PUBLIC_HEADERS} DESTINATION include/libdnf/conf)
+install(FILES ${CONF_PUBLIC_HEADERS} DESTINATION include/libdnf/conf COMPONENT "lib")
