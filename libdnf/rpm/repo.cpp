@@ -346,7 +346,7 @@ Repo::Repo(const std::string & id, std::unique_ptr<ConfigRepo> && conf, Base & b
     if (type == Type::AVAILABLE) {
         auto idx = verify_id(id);
         if (idx >= 0) {
-            std::string msg = fmt::format(_("Bad id for repo: {}, byte = {} {}"), id, id[idx], idx);
+            std::string msg = fmt::format(_("Bad id for repo: {}, byte = {} {}"), id, id[static_cast<std::make_unsigned<decltype(idx)>::type>(idx)], idx);
             throw RuntimeError(msg);
         }
     }
@@ -724,8 +724,8 @@ static std::vector<Key> rawkey2infos(int fd, Logger & logger) {
     std::unique_ptr<std::remove_pointer<gpgme_ctx_t>::type> context(ctx);
 
     // set GPG home dir
-    char tmpdir[] = "/tmp/tmpdir.XXXXXX";
-    mkdtemp(tmpdir);
+    char tmpdir_template[] = "/tmp/tmpdir.XXXXXX";
+    char *tmpdir = mkdtemp(tmpdir_template);
     std::unique_ptr<char, std::function<void(char *)>> tmp_dir_remover{
         tmpdir, [](char * tmpdir) { std::filesystem::remove_all(tmpdir); }};
     gpg_err = gpgme_ctx_set_engine_info(ctx, GPGME_PROTOCOL_OpenPGP, nullptr, tmpdir);
@@ -1129,7 +1129,7 @@ void Repo::Impl::add_countme_flag(LrHandle * handle) {
         for (i = 0; i < COUNTME_BUCKETS.size(); ++i)
             if (step < COUNTME_BUCKETS[i])
                 break;
-        int bucket = i + 1;  // Buckets are indexed from 1
+        unsigned int bucket = i + 1u;  // Buckets are indexed from 1
 
         // Set the flag
         std::string flag = "countme=" + std::to_string(bucket);
@@ -1149,8 +1149,8 @@ void Repo::Impl::add_countme_flag(LrHandle * handle) {
 // Use metalink to check whether our metadata are still current.
 bool Repo::Impl::is_metalink_in_sync() {
     auto & logger = base->get_logger();
-    char tmpdir[] = "/tmp/tmpdir.XXXXXX";
-    mkdtemp(tmpdir);
+    char tmpdir_template[] = "/tmp/tmpdir.XXXXXX";
+    char *tmpdir = mkdtemp(tmpdir_template);
 
     std::unique_ptr<char, std::function<void(char *)>> tmp_dir_remover{
         tmpdir, [](char * tmpdir) { std::filesystem::remove_all(tmpdir); }};
@@ -1218,8 +1218,8 @@ bool Repo::Impl::is_metalink_in_sync() {
 bool Repo::Impl::is_repomd_in_sync() {
     auto & logger = base->get_logger();
     LrYumRepo * yum_repo;
-    char tmpdir[] = "/tmp/tmpdir.XXXXXX";
-    mkdtemp(tmpdir);
+    char tmpdir_template[] = "/tmp/tmpdir.XXXXXX";
+    char * tmpdir = mkdtemp(tmpdir_template);
 
     std::unique_ptr<char, std::function<void(char *)>> tmp_dir_remover{
         tmpdir, [](char * tmpdir) { std::filesystem::remove_all(tmpdir); }};
@@ -1253,11 +1253,13 @@ void Repo::Impl::fetch(const std::string & destdir, std::unique_ptr<LrHandle> &&
         const char * err_txt = strerror(errno);
         throw RuntimeError(fmt::format(_("Cannot create repo destination directory \"{}\": {}"), destdir, err_txt));
     }
-    auto tmpdir = destdir + "/tmpdir.XXXXXX";
-    if (!mkdtemp(&tmpdir.front())) {
+    auto tmpdir_template = destdir + "/tmpdir.XXXXXX";
+    auto tmpdir_cstr = mkdtemp(tmpdir_template.data());
+    std::string tmpdir{tmpdir_cstr};
+    if (!tmpdir_cstr) {
         const char * err_txt = strerror(errno);
         throw RuntimeError(
-            fmt::format(_("Cannot create repo temporary directory \"{}\": {}"), tmpdir.c_str(), err_txt));
+            fmt::format(_("Cannot create repo temporary directory \"{}\": {}"), tmpdir_cstr, err_txt));
     }
     std::unique_ptr<char, std::function<void(char *)>> tmp_dir_remover{
         &tmpdir.front(), [](char * tmpdir) { std::filesystem::remove_all(tmpdir); }};
