@@ -1,6 +1,15 @@
 message("Running CMake on libdnf...")
 cmake_minimum_required(VERSION 3.5)
 
+macro(pass_through_cpack_vars)
+	get_cmake_property(cpackVarsToPassthrough VARIABLES)
+	foreach(varName ${cpackVarsToPassthrough})
+		if(varName MATCHES "^CPACK_")
+			set("${varName}" "${${varName}}" PARENT_SCOPE)
+		endif()
+	endforeach()
+endmacro()
+
 
 include(VERSION.cmake)
 project(libdnf LANGUAGES CXX VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH})
@@ -109,5 +118,24 @@ add_subdirectory("dnfdaemon-client")
 add_subdirectory("microdnf")
 
 # tests
-enable_testing()
-add_subdirectory("test")
+if(WITH_TESTS)
+    enable_testing()
+    add_subdirectory("test")
+endif(WITH_TESTS)
+
+set(CPACK_PACKAGE_NAME libdnf)
+set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
+set(CPACK_PACKAGE_VENDOR "Red Hat")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Software management library.")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/doc/CPack.libdnf.description.txt")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/rpm-software-management/libdnf")
+set(CPACK_PACKAGE_CONTACT "https://github.com/rpm-software-management/libdnf")
+set(CPACK_PACKAGE_CHECKSUM "SHA512")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/COPYING.md")
+set(CPACK_GENERATOR "DEB")
+option(CPACK_RPM_COMPONENT_INSTALL "Split into multiple rpm packages" ON)
+option(CPACK_DEB_COMPONENT_INSTALL "Split into multiple deb packages" ON)
+
+include(CPack)

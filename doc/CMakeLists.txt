@@ -35,15 +35,15 @@ if(WITH_MAN)
     add_dependencies(doc doc-man)
 
     if(WITH_DNFDAEMON_CLIENT)
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/dnfdaemon-client.8 DESTINATION share/man/man8)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/dnfdaemon-client.8 DESTINATION share/man/man8 COMPONENT "doc")
     endif()
 
     if(WITH_DNFDAEMON_SERVER)
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/dnfdaemon-server.8 DESTINATION share/man/man8)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/dnfdaemon-server.8 DESTINATION share/man/man8 COMPONENT "doc")
     endif()
 
     if(WITH_MICRODNF)
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/microdnf.8 DESTINATION share/man/man8)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/microdnf.8 DESTINATION share/man/man8 COMPONENT "doc")
     endif()
 
 endif()

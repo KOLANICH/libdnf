@@ -50,3 +50,5 @@ list(APPEND SWIG_LIBDNF_CLI_MODULES progressbar)
 #add_subdirectory(perl5)
 add_subdirectory(python3)
 add_subdirectory(ruby)
+
+pass_through_cpack_vars()

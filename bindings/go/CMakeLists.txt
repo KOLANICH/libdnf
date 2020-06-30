@@ -21,3 +21,5 @@ endfunction()
 
 add_subdirectory(libdnf)
 add_subdirectory(libdnf_cli)
+
+pass_through_cpack_vars()

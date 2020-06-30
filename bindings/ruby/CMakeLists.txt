@@ -23,7 +23,7 @@ function(add_ruby_module LIBRARY_NAME MODULE_NAME)
     swig_link_libraries(${TARGET_NAME} ${C_LIBRARY_NAME})
     swig_link_libraries(${TARGET_NAME} ${RUBY_LIBRARIES})
 
-    install(TARGETS ${TARGET_NAME} LIBRARY DESTINATION "${RUBY_VENDORARCH_DIR}/${LIBRARY_NAME}")
+    install(TARGETS ${TARGET_NAME} LIBRARY DESTINATION "${RUBY_VENDORARCH_DIR}/${LIBRARY_NAME}" COMPONENT "ruby")
 endfunction()
 
 

@@ -21,7 +21,7 @@ set_target_properties(libdnf-cli PROPERTIES SOVERSION ${DNF_CLI_SO_VERSION})
 target_link_libraries(libdnf-cli stdc++)
 
 # install libdnf-cli.so
-install(TARGETS libdnf-cli LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
+install(TARGETS libdnf-cli LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR} COMPONENT "lib_cli")
 
 
 # link libraries and set pkg-config requires
@@ -40,4 +40,5 @@ list(JOIN LIBDNF_CLI_PC_REQUIRES_PRIVATE ", " LIBDNF_CLI_PC_REQUIRES_PRIVATE_STR
 
 # create a .pc file
 configure_file("libdnf-cli.pc.in" ${CMAKE_CURRENT_BINARY_DIR}/libdnf-cli.pc @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libdnf-cli.pc DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libdnf-cli.pc DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig COMPONENT "lib_cli_dev")
+pass_through_cpack_vars()

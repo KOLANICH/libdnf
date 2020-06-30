@@ -10,6 +10,10 @@ find_package(Perl REQUIRED)
 find_package(PerlLibs REQUIRED)
 
 
+string(REPLACE "." ";" PERL_VERSION_PARSED "${PERL_VERSION_STRING}")
+list(GET PERL_VERSION_PARSED 0 PERL_VERSION_MAJOR)
+list(GET PERL_VERSION_PARSED 1 PERL_VERSION_MINOR)
+
 # Preprocessor flags (cppflags) are already included in compiler flags
 # (ccflags). Except a path to perl.h that is recorded nowhere.
 include_directories(${PERL_INCLUDE_PATH})
@@ -56,10 +60,12 @@ function(add_perl5_module LIBRARY_NAME MODULE_NAME)
     string(REPLACE "_" "-" C_LIBRARY_NAME ${LIBRARY_NAME})
     swig_link_libraries(${TARGET_NAME} ${C_LIBRARY_NAME})
 
-    install(TARGETS ${TARGET_NAME} LIBRARY DESTINATION "${PERL_INSTALL_PATH}/auto/${LIBRARY_NAME}/${MODULE_NAME}")
-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${MODULE_NAME}.pm" DESTINATION "${PERL_INSTALL_PATH}/${LIBRARY_NAME}")
+    install(TARGETS ${TARGET_NAME} LIBRARY DESTINATION "${PERL_INSTALL_PATH}/auto/${LIBRARY_NAME}/${MODULE_NAME}" COMPONENT "perl5")
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${MODULE_NAME}.pm" DESTINATION "${PERL_INSTALL_PATH}/${LIBRARY_NAME}" COMPONENT "perl5")
 endfunction()
 
 
 add_subdirectory(libdnf)
 add_subdirectory(libdnf_cli)
+
+pass_through_cpack_vars()
