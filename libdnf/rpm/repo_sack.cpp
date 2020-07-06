@@ -26,6 +26,7 @@ along with libdnf.  If not, see <https://www.gnu.org/licenses/>.
 #include <fmt/format.h>
 
 #include <filesystem>
+#include <type_traits>
 
 namespace libdnf::rpm {
 
@@ -100,7 +101,7 @@ void RepoSack::new_repos_from_file(const std::string & path) {
                     R"**(Skipping repository with bad id "{}" section "{}", char = {} at pos {})**",
                     repo_id,
                     section,
-                    repo_id[bad_char_idx],
+                    repo_id[static_cast<std::make_unsigned<decltype(bad_char_idx)>::type>(bad_char_idx)],
                     bad_char_idx + 1);
                 logger.warning(msg);
                 continue;
@@ -109,7 +110,7 @@ void RepoSack::new_repos_from_file(const std::string & path) {
                     R"**(Bad id for repo "{}" section "{}", char = {} at pos {})**",
                     repo_id,
                     section,
-                    repo_id[bad_char_idx],
+                    repo_id[static_cast<std::make_unsigned<decltype(bad_char_idx)>::type>(bad_char_idx)],
                     bad_char_idx + 1);
                 throw RuntimeError(msg);
             }

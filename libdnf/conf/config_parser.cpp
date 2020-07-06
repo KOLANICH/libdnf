@@ -23,11 +23,14 @@ along with libdnf.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <algorithm>
 #include <fstream>
+#include <type_traits>
+#include <stdexcept>
 
 namespace libdnf {
 
 void ConfigParser::substitute(std::string & text, const std::map<std::string, std::string> & substitutions) {
     auto start = text.find_first_of('$');
+    using signedType = std::make_signed_t<decltype(start)>;
     while (start != std::string::npos) {
         auto variable = start + 1;
         if (variable >= text.length()) {
@@ -42,12 +45,17 @@ void ConfigParser::substitute(std::string & text, const std::map<std::string, st
         } else {
             bracket = false;
         }
+        auto variable1 = static_cast<signedType>(variable);
+        if (variable1 < 0){
+            throw std::overflow_error("Integer overflow in `variable` variable!");
+        }
         auto it = std::find_if_not(
-            text.begin() + variable, text.end(), [](char c) { return std::isalnum(c) != 0 || c == '_'; });
+            text.begin() + variable1, text.end(), [](char c) { return std::isalnum(c) != 0 || c == '_'; });
         if (bracket && it == text.end()) {
             break;
         }
-        auto past_variable = std::distance(text.begin(), it);
+        auto past_variable_s = std::distance(text.begin(), it);
+        auto past_variable = static_cast<std::make_unsigned_t<decltype(past_variable_s)>>(past_variable_s);
         if (bracket && *it != '}') {
             start = text.find_first_of('$', past_variable);
             continue;
